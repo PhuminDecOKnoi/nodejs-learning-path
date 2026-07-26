@@ -1,180 +1,114 @@
 # Module 10: REST API Design and Routing
 
-## 1. Overview
-Module นี้อธิบายการออกแบบ REST API และการจัด routing
-เพื่อสร้าง backend ที่เป็นมาตรฐานและขยายต่อได้
+> Baseline: Node.js 24 LTS • Express 5.x • Updated: 2026-07-26
 
-หัวข้อหลัก:
-- REST principles
-- HTTP methods
-- route design
-- API structure
-- router separation
-- CRUD operations
+## Learning outcomes
 
----
+ผู้เรียนจะออกแบบ resource-oriented API, ใช้ HTTP semantics, แยก router/controller/service และส่ง error response อย่างสม่ำเสมอได้
 
-## 2. REST API Concept
-REST = Representational State Transfer
+## Resource-oriented design
 
-หลักการ:
-- ใช้ HTTP methods
-- ใช้ URL แทน resource
-- ส่งข้อมูลเป็น JSON
-- stateless
+ใช้คำนามแทนการตั้ง endpoint แบบคำสั่ง:
 
-Example
-```
-GET /users
-GET /users/1
-POST /users
-PUT /users/1
-DELETE /users/1
+```text
+GET    /api/v1/users
+POST   /api/v1/users
+GET    /api/v1/users/:id
+PATCH  /api/v1/users/:id
+DELETE /api/v1/users/:id
 ```
 
----
+หลีกเลี่ยง `/getUsers`, `/createUser` เมื่อ HTTP method สื่อความหมายได้อยู่แล้ว
 
-## 3. HTTP Methods
-| Method | Purpose |
-|--------|---------|
-| GET | Read data |
-| POST | Create |
-| PUT | Update |
-| DELETE | Remove |
+## Router example
 
----
+```js
+import { Router } from "express";
 
-## 4. Basic REST API
-```javascript
-const express = require("express");
-const app = express();
+export const userRouter = Router();
 
-app.use(express.json());
-
-let users = [];
-
-app.get("/users", (req, res) => {
-    res.send(users);
+userRouter.get("/", async (req, res) => {
+  const users = await req.services.user.list({
+    limit: Math.min(Number(req.query.limit ?? 20), 100)
+  });
+  res.json({ data: users });
 });
 
-app.post("/users", (req, res) => {
-    users.push(req.body);
-    res.send("User added");
-});
-
-app.listen(3000);
-```
-
----
-
-## 5. Route Parameters
-```javascript
-app.get("/users/:id", (req, res) => {
-    res.send("User " + req.params.id);
+userRouter.post("/", async (req, res) => {
+  const user = await req.services.user.create(req.body);
+  res.status(201)
+    .location(`/api/v1/users/${user.id}`)
+    .json({ data: user });
 });
 ```
 
----
+Mount router:
 
-## 6. CRUD Example
-```javascript
-app.post("/users", (req, res) => {
-    users.push(req.body);
-    res.send(users);
-});
-
-app.get("/users", (req, res) => {
-    res.send(users);
-});
-
-app.put("/users/:id", (req, res) => {
-    users[req.params.id] = req.body;
-    res.send("Updated");
-});
-
-app.delete("/users/:id", (req, res) => {
-    users.splice(req.params.id, 1);
-    res.send("Deleted");
-});
+```js
+app.use("/api/v1/users", userRouter);
 ```
 
----
+## Status codes
 
-## 7. Express Router
-สร้าง router แยกไฟล์
+- `200 OK`: อ่านหรือแก้ไขสำเร็จ
+- `201 Created`: สร้าง resource สำเร็จ
+- `204 No Content`: สำเร็จโดยไม่มี response body
+- `400 Bad Request`: request ผิดรูปแบบ
+- `401 Unauthorized`: ยังไม่ได้ยืนยันตัวตน
+- `403 Forbidden`: ยืนยันตัวตนแล้วแต่ไม่มีสิทธิ์
+- `404 Not Found`: ไม่พบ resource
+- `409 Conflict`: ขัดแย้งกับ state ปัจจุบัน
+- `422 Unprocessable Content`: validation ไม่ผ่าน
+- `429 Too Many Requests`: เกิน rate limit
+- `500 Internal Server Error`: ความผิดพลาดภายใน
 
-routes/users.js
-```javascript
-const express = require("express");
-const router = express.Router();
+## Validation and errors
 
-router.get("/", (req, res) => {
-    res.send("User list");
-});
+อย่าใช้ข้อมูลใน `req.body`, `req.params`, `req.query` โดยไม่ validate
 
-module.exports = router;
+รูปแบบ error ที่สม่ำเสมอ:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed",
+    "details": [
+      { "field": "email", "message": "Invalid email" }
+    ]
+  }
+}
 ```
 
-app.js
-```javascript
-const usersRouter = require("./routes/users");
+ไม่ส่ง stack trace, SQL หรือข้อมูล secret ให้ client
 
-app.use("/users", usersRouter);
+## Pagination and filtering
+
+```text
+GET /api/v1/users?limit=20&cursor=abc&status=active
 ```
 
----
+Cursor pagination เหมาะกับข้อมูลที่เพิ่มต่อเนื่องและลดปัญหารายการซ้ำ/หายเมื่อข้อมูลเปลี่ยนระหว่างหน้า
 
-## 8. REST API Structure
-```
-project
- ├── app.js
- ├── routes
- │   └── users.js
- ├── controllers
- └── models
-```
+## API quality checklist
 
----
+- version API อย่างมีเหตุผล
+- ใช้ OpenAPI document เป็น contract
+- จำกัด payload และ query size
+- กำหนด idempotency สำหรับ operation สำคัญ
+- ใช้ request ID และ structured logging
+- มี health/readiness endpoint
 
-## 9. JSON Response Standard
-```javascript
-res.send({
-    status: "success",
-    data: users
-});
-```
+## Checklist
 
----
+- [ ] ออกแบบ endpoint แบบ resource-oriented ได้
+- [ ] เลือก HTTP method/status code ได้ถูกต้อง
+- [ ] แยก router จาก business logic ได้
+- [ ] validate input และกำหนด error contract ได้
+- [ ] ออกแบบ pagination/filtering ได้
 
-## 10. Query Filtering
-```javascript
-app.get("/users", (req, res) => {
-    const role = req.query.role;
-    res.send("Filter role " + role);
-});
-```
+## References
 
----
-
-## 11. Key Concepts
-- REST design
-- CRUD
-- routing
-- router separation
-- JSON API
-- scalable structure
-
----
-
-## 12. Learning Checklist
-- [ ] เข้าใจ REST
-- [ ] ใช้ HTTP methods ได้
-- [ ] สร้าง CRUD ได้
-- [ ] ใช้ router แยกไฟล์ได้
-- [ ] ออกแบบ API structure ได้
-- [ ] ใช้ query filtering ได้
-
----
-
-## 13. Next Module
-Module 11: Database Integration
+- Express routing: <https://expressjs.com/en/guide/routing.html>
+- HTTP semantics: <https://www.rfc-editor.org/rfc/rfc9110>
+- OpenAPI: <https://spec.openapis.org/oas/latest.html>
