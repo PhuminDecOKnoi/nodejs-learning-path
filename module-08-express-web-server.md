@@ -1,174 +1,117 @@
-# Module 8: Web Servers with Express
+# Module 8: Web Servers with Express 5
 
-## 1. Overview
-Module นี้จะสอนการสร้าง Web Server ด้วย Express.js
-ซึ่งเป็น framework ยอดนิยมของ Node.js
+> Baseline: Node.js 24 LTS • Express 5.x • Updated: 2026-07-26
 
-Express ใช้สำหรับ:
-- REST API
-- Web server
-- Backend service
-- Dashboard backend
-- Microservices
+## Learning outcomes
 
----
+ผู้เรียนจะสร้าง Express 5 server, ใช้ middleware, route parameters, JSON parsing และ centralized error handling ได้
 
-## 2. Install Express
+## Installation
+
 ```bash
-npm install express
+npm install express@5
 ```
 
----
+`package.json`:
 
-## 3. Basic Express Server
-```javascript
-const express = require("express");
+```json
+{
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  }
+}
+```
+
+## Minimal server
+
+```js
+import express from "express";
 
 const app = express();
+const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 
-app.get("/", (req, res) => {
-    res.send("Hello Express");
+app.use(express.json({ limit: "100kb" }));
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
 });
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000");
-});
-```
-
-Run
-```bash
-node app.js
-```
-
-Open Browser
-```
-http://localhost:3000
-```
-
----
-
-## 4. Multiple Routes
-```javascript
-const express = require("express");
-const app = express();
-
-app.get("/", (req, res) => {
-    res.send("Home Page");
+app.get("/users/:id", (req, res) => {
+  res.json({ id: req.params.id });
 });
 
-app.get("/about", (req, res) => {
-    res.send("About Page");
-});
-
-app.get("/contact", (req, res) => {
-    res.send("Contact Page");
-});
-
-app.listen(3000);
-```
-
----
-
-## 5. Send JSON
-```javascript
-app.get("/api", (req, res) => {
-    res.send({
-        name: "Phumin",
-        role: "Node Learner"
-    });
+app.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
 });
 ```
 
----
+Express มี `express.json()` และ `express.urlencoded()` ในตัว จึงไม่ต้องใช้ `body-parser` สำหรับกรณีทั่วไป
 
-## 6. Route Parameters
-```javascript
-app.get("/user/:id", (req, res) => {
-    res.send("User ID: " + req.params.id);
+## Async route and error flow
+
+Express 5 ส่ง rejected Promise จาก async handler ไปยัง error middleware ได้:
+
+```js
+app.get("/reports/:id", async (req, res) => {
+  const report = await reportService.findById(req.params.id);
+
+  if (!report) {
+    const error = new Error("Report not found");
+    error.status = 404;
+    throw error;
+  }
+
+  res.json(report);
 });
 ```
 
-URL
-```
-http://localhost:3000/user/100
-```
+Error middleware ต้องมี 4 parameters และวางท้าย routes:
 
----
-
-## 7. Query String
-```javascript
-app.get("/search", (req, res) => {
-    res.send("Keyword: " + req.query.q);
+```js
+app.use((error, req, res, next) => {
+  const status = Number.isInteger(error.status) ? error.status : 500;
+  res.status(status).json({
+    error: status === 500 ? "Internal Server Error" : error.message
+  });
 });
 ```
 
-URL
-```
-http://localhost:3000/search?q=node
-```
+อย่าส่ง stack trace หรือข้อมูลภายในให้ client ใน production
 
----
+## Middleware order
 
-## 8. Static Files
-```javascript
-const path = require("path");
-
-app.use(express.static(path.join(__dirname, "public")));
+```text
+security/request-id → body parser → logging → routes → 404 → error handler
 ```
 
-Folder structure
-```
-project
- ├── app.js
- └── public
-     └── index.html
-```
+404 handler:
 
----
-
-## 9. Middleware
-```javascript
-app.use((req, res, next) => {
-    console.log("Request received");
-    next();
+```js
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
 });
 ```
 
----
+## Production notes
 
-## 10. REST API Example
-```javascript
-app.get("/api/users", (req, res) => {
-    res.send([
-        { id: 1, name: "John" },
-        { id: 2, name: "Jane" }
-    ]);
-});
-```
+- ตั้ง `PORT` ผ่าน environment
+- validate request input
+- จำกัด body size
+- กำหนด reverse proxy/trust proxy ให้ตรง environment
+- รองรับ graceful shutdown
+- อย่าใช้ in-memory session store ใน production แบบหลาย instance
 
----
+## Checklist
 
-## 11. Key Concepts
-- express server
-- routes
-- middleware
-- JSON response
-- static files
-- REST API
+- [ ] สร้าง Express 5 server ได้
+- [ ] ใช้ `express.json()` ได้
+- [ ] แยก route และ middleware ได้
+- [ ] เข้าใจ async error handling ของ Express 5
+- [ ] มี 404 และ centralized error handler
 
----
+## Official references
 
-## 12. Learning Checklist
-- [ ] ติดตั้ง Express ได้
-- [ ] สร้าง server ได้
-- [ ] สร้าง route ได้
-- [ ] ส่ง JSON ได้
-- [ ] ใช้ params ได้
-- [ ] ใช้ query string ได้
-- [ ] ใช้ middleware ได้
-- [ ] serve static files ได้
-
----
-
-## 13. Next Module
-Module 9: REST API Design
+- Express 5 API: <https://expressjs.com/en/5x/api.html>
+- Express migration guide: <https://expressjs.com/en/guide/migrating-5.html>
