@@ -1,186 +1,125 @@
 # Module 15: Project Structure and Best Practices
 
-## 1. Overview
-Module นี้สรุปโครงสร้างโปรเจกต์ Node.js แบบ Production-ready
-และ Best Practices เพื่อให้โค้ดอ่านง่าย ขยายง่าย และดูแลระยะยาวได้
+> Baseline: Node.js 24 LTS • Express 5.x • ESM-first • Updated: 2026-07-26
 
-หัวข้อหลัก:
-- project structure
-- separation of concerns
-- folder organization
-- coding standards
-- scalability
-- maintainability
+## Learning outcomes
 
----
+ผู้เรียนจะออกแบบโครงสร้างโครงการตาม responsibility, แยก transport/business/data layers และกำหนดมาตรฐานที่ช่วยให้โครงการทดสอบ บำรุงรักษา และขยายได้
 
-## 2. Recommended Project Structure
-```
-project
- ├── src
- │   ├── app.js
- │   ├── server.js
- │   ├── routes
- │   ├── controllers
- │   ├── models
- │   ├── middleware
- │   ├── services
- │   └── utils
- ├── tests
- ├── public
- ├── .env
- ├── package.json
- └── README.md
-```
+## Recommended structure
 
----
-
-## 3. Separation of Concerns
-
-| Layer | Responsibility |
-|-------|---------------|
-| routes | endpoint definition |
-| controllers | request handling |
-| services | business logic |
-| models | database schema |
-| middleware | auth / logging |
-| utils | helper functions |
-
----
-
-## 4. Example Flow
-```
-Route → Controller → Service → Model → Database
+```text
+node-app/
+├─ src/
+│  ├─ app.js                 # สร้าง Express app
+│  ├─ server.js              # เปิด port และ lifecycle
+│  ├─ config/
+│  │  └─ env.js
+│  ├─ routes/
+│  │  └─ user.routes.js
+│  ├─ controllers/
+│  │  └─ user.controller.js
+│  ├─ services/
+│  │  └─ user.service.js
+│  ├─ repositories/
+│  │  └─ user.repository.js
+│  ├─ middleware/
+│  │  ├─ error-handler.js
+│  │  └─ request-id.js
+│  └─ domain/
+│     └─ user.js
+├─ test/
+│  ├─ unit/
+│  └─ integration/
+├─ public/
+├─ views/
+├─ .env.example
+├─ .gitignore
+├─ .nvmrc
+├─ package.json
+├─ package-lock.json
+└─ README.md
 ```
 
----
+โครงสร้างเป็นแนวทาง ไม่ใช่กฎตายตัว โครงการเล็กไม่ควรสร้าง layer จำนวนมากโดยไม่มีความจำเป็น
 
-## 5. Route Example
-```javascript
-router.get("/users", userController.getUsers);
+## Responsibility flow
+
+```text
+Route → Controller → Service → Repository → Database
 ```
 
-Controller
-```javascript
-exports.getUsers = async (req, res) => {
-    const users = await userService.getUsers();
-    res.send(users);
-};
+- **Route:** HTTP path/middleware composition
+- **Controller:** แปลง HTTP request/response
+- **Service:** business rules และ use cases
+- **Repository:** data access
+- **Domain:** entity/value/rules ที่ไม่ผูกกับ framework
+
+ห้ามวาง SQL, password hashing, authorization rule และ response formatting ทั้งหมดไว้ใน route เดียว
+
+## App/server separation
+
+```js
+// app.js
+import express from "express";
+export const app = express();
+
+// server.js
+import { app } from "./app.js";
+const server = app.listen(process.env.PORT ?? 3000);
 ```
 
-Service
-```javascript
-exports.getUsers = () => {
-    return User.find();
-};
-```
+รูปแบบนี้ช่วยให้ integration test import app ได้โดยไม่เปิด port อัตโนมัติ
 
----
+## Configuration
 
-## 6. Environment Config
-```
-src/config
- ├── database.js
- ├── auth.js
- └── server.js
-```
+- validate environment ตอน startup
+- มี `.env.example` แต่ไม่ commit `.env`
+- fail fast เมื่อ configuration สำคัญหาย
+- อย่าอ่าน `process.env` กระจายทั่วโครงการ ให้รวมผ่าน config module
 
----
+## Coding standards
 
-## 7. Naming Conventions
-- use camelCase for variables
-- use PascalCase for classes
-- use kebab-case for files
-- use plural for routes
+- ใช้ ESM และ `node:` prefix สำหรับ built-in modules
+- ใช้ `const` เป็นค่าเริ่มต้น
+- ใช้ async/await และกำหนด timeout ที่ external boundary
+- หลีกเลี่ยง global mutable state
+- dependency injection แบบเรียบง่ายเพื่อทดสอบได้
+- centralized error mapping
+- structured logging และ request ID
+- เขียน JSDoc/TypeScript เฉพาะเมื่อช่วย contract ไม่ใช่ comment ซ้ำ code
 
-Examples
-```
-userController.js
-authMiddleware.js
-users.routes.js
-```
+## Repository standards
 
----
+ควรมี:
 
-## 8. Error Handling Pattern
-```javascript
-try {
-    const data = await service();
-    res.send(data);
-} catch (error) {
-    next(error);
-}
-```
+- `README.md`
+- `LICENSE` (MIT สำหรับ repository นี้)
+- `.gitignore`
+- lockfile
+- `CONTRIBUTING.md` เมื่อเปิดรับ contribution
+- `SECURITY.md` เมื่อเป็น public application/library
+- CI สำหรับ test และ dependency review
 
----
+## Definition of done
 
-## 9. Central Error Middleware
-```javascript
-app.use((err, req, res, next) => {
-    res.status(500).send({
-        error: err.message
-    });
-});
-```
+- code ผ่าน test/lint/type-check ที่กำหนด
+- input validation และ authorization ครบ
+- ไม่มี secret หรือ generated dependencies ใน commit
+- documentation และ migration note ถูกอัปเดต
+- มี observability สำหรับ feature สำคัญ
+- rollback หรือ remediation path ชัดเจน
 
----
+## Checklist
 
-## 10. Best Practices Checklist
-- แยก routes
-- แยก controllers
-- แยก services
-- ใช้ environment variables
-- ใช้ middleware
-- centralized error handling
-- consistent naming
-- logging
-- testing
+- [ ] แยก app จาก server lifecycle ได้
+- [ ] แยก route/controller/service/repository ตามความจำเป็นได้
+- [ ] validate configuration ตอน startup ได้
+- [ ] เขียนโครงการที่ทดสอบได้โดยไม่พึ่ง global state
+- [ ] ตรวจมาตรฐาน repository และ definition of done ได้
 
----
+## Official references
 
-## 11. Scalable Structure
-```
-modules
- ├── users
- │   ├── users.routes.js
- │   ├── users.controller.js
- │   ├── users.service.js
- │   └── users.model.js
-```
-
----
-
-## 12. Key Concepts
-- scalable architecture
-- separation of concerns
-- maintainable code
-- production structure
-- clean code
-
----
-
-## 13. Learning Checklist
-- [ ] ใช้ project structure ได้
-- [ ] แยก layers ได้
-- [ ] ใช้ naming convention ได้
-- [ ] ทำ centralized error ได้
-- [ ] สร้าง scalable architecture ได้
-
----
-
-## 14. Course Completed
-คุณได้เรียนครบ Node.js Learning Path:
-- Core Node.js
-- Express
-- REST API
-- Database
-- Auth
-- Deployment
-- Testing
-- Production Structure
-
-Ready for:
-- Real project
-- Enterprise backend
-- Dashboard system
-- AI integration
+- Node.js package conventions: <https://nodejs.org/docs/latest-v24.x/api/packages.html>
+- Express production practices: <https://expressjs.com/en/advanced/best-practice-performance.html>
+- GitHub repository documentation: <https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository>
