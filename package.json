@@ -1,8 +1,8 @@
 {
   "name": "nodejs-learning-path",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
-  "description": "Consolidated Node.js learning repository covering fundamentals, Express, EJS, MySQL, Socket.IO and practical game projects.",
+  "description": "Version-audited Node.js 24 LTS learning path covering ESM, Express 5, EJS, databases, security, testing and production practices.",
   "type": "module",
   "engines": {
     "node": ">=24.18.0 <25",
@@ -10,18 +10,15 @@
   },
   "scripts": {
     "start": "node examples/express-ejs/src/app.js",
-    "dev": "nodemon examples/express-ejs/src/app.js",
-    "check": "node --check examples/express-ejs/src/app.js"
+    "dev": "node --watch examples/express-ejs/src/app.js",
+    "check": "node --check examples/express-ejs/src/app.js",
+    "test": "node --test"
   },
   "dependencies": {
     "ejs": "^6.0.1",
     "express": "^5.1.0",
-    "lodash": "^4.17.21",
     "mysql2": "^3.23.1",
     "socket.io": "^4.8.3"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
   },
   "license": "MIT",
   "repository": {
@@ -30,9 +27,10 @@
   },
   "keywords": [
     "nodejs",
-    "express",
+    "nodejs-24",
+    "express-5",
     "ejs",
-    "mysql",
+    "mysql2",
     "socket.io",
     "learning-path"
   ]
