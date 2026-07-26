@@ -38,7 +38,7 @@ Repository นี้รวมสื่อ Node.js เดิมของ `PhuminD
 | Development watch | built-in `node --watch` |
 | GitHub Actions | `actions/checkout@v6`, `actions/setup-node@v4` |
 | AI API baseline | OpenAI Responses API, streaming, tools and Structured Outputs |
-| License | MIT |
+| License | MIT for all original repository content |
 
 > สำหรับ production ให้ใช้สาย Node.js LTS ที่ยังได้รับการสนับสนุน ส่วน Current เหมาะสำหรับทดลองและประเมินความเข้ากันได้
 
@@ -48,6 +48,7 @@ Repository นี้รวมสื่อ Node.js เดิมของ `PhuminD
 nodejs-learning-path/
 ├── README.md
 ├── LICENSE
+├── LICENSE-POLICY.md
 ├── MIGRATION.md
 ├── package.json
 ├── package-lock.json
@@ -92,7 +93,7 @@ http://localhost:3000
 ตรวจ health endpoint:
 
 ```text
-http://localhost:3000/health
+http://localhost:3000/api/health
 ```
 
 ## Learning path
@@ -161,6 +162,7 @@ http://localhost:3000/health
 - เพิ่ม GitHub governance และ CI/CD security
 - เพิ่ม AI production engineering ด้วย Responses API, tools, RAG และ evaluation
 - เปลี่ยน License จาก GPL-2.0 เป็น MIT
+- กำหนดนโยบาย MIT ครอบคลุม Markdown, source code, templates, examples, workflows และ assets ที่สร้างโดยโครงการ
 
 ## Validation
 
@@ -174,4 +176,6 @@ npm test
 
 ## License
 
-เผยแพร่ภายใต้ [MIT License](LICENSE) โดย third-party dependencies ยังคงใช้ License ของแต่ละโครงการ
+เนื้อหาต้นฉบับทั้งหมดของ Repository นี้เผยแพร่ภายใต้ [MIT License](LICENSE) และอยู่ภายใต้นโยบาย [Repository-wide MIT License Policy](LICENSE-POLICY.md)
+
+Third-party dependencies, snippets, trademarks และ assets ภายนอกยังคงใช้สิทธิและ License ของเจ้าของแต่ละราย ไม่ถูกเปลี่ยนเป็น MIT โดยอัตโนมัติ
