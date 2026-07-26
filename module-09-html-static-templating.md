@@ -1,216 +1,96 @@
-# Module 9: HTML5, Static Assets, and Templating
+# Module 9: HTML5, Static Assets, and EJS Templating
 
-## 1. Overview
-Module นี้สอนการเชื่อม Express กับ HTML5
-เพื่อสร้าง Web Application ที่แสดงผลหน้าเว็บจริง
+> Baseline: Node.js 24 LTS • Express 5.x • EJS 6.x • Updated: 2026-07-26
 
-หัวข้อหลัก:
-- static files
-- HTML5 integration
-- CSS / JS assets
-- templating engine
-- dynamic HTML
-- layout reuse
+## Learning outcomes
 
----
+ผู้เรียนจะให้บริการ static assets, render server-side HTML ด้วย EJS และป้องกันปัญหา path traversal กับ XSS ขั้นพื้นฐานได้
 
-## 2. Serving Static HTML
-โครงสร้างไฟล์
+## Project structure
 
-```
-project
- ├── app.js
- └── public
-     └── index.html
+```text
+src/app.js
+views/
+  index.ejs
+public/
+  css/app.css
+  js/app.js
 ```
 
-app.js
-```javascript
-const express = require("express");
-const path = require("path");
+## Express configuration
+
+```js
+import express from "express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const app = express();
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
-app.use(express.static(path.join(__dirname, "public")));
+app.set("view engine", "ejs");
+app.set("views", path.join(dirname, "..", "views"));
+app.use("/assets", express.static(path.join(dirname, "..", "public"), {
+  maxAge: "1h",
+  immutable: false
+}));
 
-app.listen(3000);
+app.get("/", (req, res) => {
+  res.render("index", {
+    title: "Node.js Learning Path",
+    modules: ["Node.js", "Express", "EJS"]
+  });
+});
 ```
 
-เปิด browser
-```
-http://localhost:3000
-```
+## EJS template
 
----
-
-## 3. HTML5 Example
-public/index.html
-```html
-<!DOCTYPE html>
-<html>
+```ejs
+<!doctype html>
+<html lang="th">
 <head>
-    <title>Node App</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
-    <h1>Node.js HTML5 Page</h1>
+  <main>
+    <h1><%= title %></h1>
+    <ul>
+      <% for (const moduleName of modules) { %>
+        <li><%= moduleName %></li>
+      <% } %>
+    </ul>
+  </main>
 </body>
 </html>
 ```
 
----
+`<%= value %>` escape HTML โดยอัตโนมัติ ส่วน `<%- value %>` แสดง raw HTML และเสี่ยง XSS หากข้อมูลมาจากผู้ใช้
 
-## 4. Static Assets (CSS / JS)
-โครงสร้าง
-```
-public
- ├── index.html
- ├── css
- │   └── style.css
- └── js
-     └── app.js
-```
+## Static asset guidance
 
-HTML
-```html
-<link rel="stylesheet" href="/css/style.css">
-<script src="/js/app.js"></script>
-```
+- ใช้ `express.static()` กับ directory ที่กำหนดแน่นอน
+- ไม่สร้าง file path โดยนำ user input มาต่อโดยตรง
+- ใช้ hashed filenames หรือ cache policy ที่เหมาะสมสำหรับ production
+- ตั้ง Content Security Policy ผ่าน security middleware หรือ reverse proxy
+- ใช้ semantic HTML และกำหนด `lang`, `charset`, viewport
 
----
+## When to use templates
 
-## 5. CSS Example
-css/style.css
-```css
-body {
-    font-family: Arial;
-    background: #f5f5f5;
-}
-```
+EJS เหมาะกับ server-rendered pages, admin tools, internal applications และ HTML email preview ส่วน SPA/React เหมาะเมื่อ client-side interaction ซับซ้อนกว่า แต่ไม่จำเป็นสำหรับทุกโครงการ
 
----
+## Checklist
 
-## 6. Client-side JavaScript
-js/app.js
-```javascript
-console.log("Client JS loaded");
-```
+- [ ] ตั้งค่า EJS และ views directory ได้
+- [ ] ให้บริการ static assets ได้
+- [ ] แยก escaped กับ raw output ได้
+- [ ] ใช้ path utilities ใน ESM ได้
+- [ ] วาง HTML ที่เข้าถึงได้และ responsive ได้
 
----
+## References
 
-## 7. Why Templating
-Static HTML ไม่สามารถสร้าง dynamic data ได้
-ต้องใช้ templating engine เช่น:
-- EJS
-- Handlebars
-- Pug
-
----
-
-## 8. Install Handlebars
-```bash
-npm install hbs
-```
-
----
-
-## 9. Setup Templating Engine
-```javascript
-const express = require("express");
-const path = require("path");
-const hbs = require("hbs");
-
-const app = express();
-
-app.set("view engine", "hbs");
-
-app.get("/", (req, res) => {
-    res.render("index", {
-        title: "Home Page",
-        name: "Phumin"
-    });
-});
-
-app.listen(3000);
-```
-
----
-
-## 10. Views Folder
-```
-project
- ├── app.js
- └── views
-     └── index.hbs
-```
-
-views/index.hbs
-```html
-<h1>{{title}}</h1>
-<p>Hello {{name}}</p>
-```
-
----
-
-## 11. Layout Partials
-สร้าง reusable components
-
-```
-views
- ├── index.hbs
- └── partials
-     └── header.hbs
-```
-
-header.hbs
-```html
-<header>
-    <h1>My Website</h1>
-</header>
-```
-
-register partial
-```javascript
-hbs.registerPartials(path.join(__dirname, "views/partials"));
-```
-
-ใช้
-```html
-{{> header}}
-```
-
----
-
-## 12. Dynamic Route + Template
-```javascript
-app.get("/profile", (req, res) => {
-    res.render("profile", {
-        name: "Phumin",
-        role: "Node Learner"
-    });
-});
-```
-
----
-
-## 13. Key Concepts
-- static HTML
-- CSS / JS assets
-- templating engine
-- dynamic HTML
-- layout reuse
-- client-server integration
-
----
-
-## 14. Learning Checklist
-- [ ] serve HTML ได้
-- [ ] serve CSS ได้
-- [ ] serve JS ได้
-- [ ] ใช้ templating ได้
-- [ ] render dynamic data ได้
-- [ ] ใช้ partial layout ได้
-
----
-
-## 15. Next Module
-Module 10: REST API Design and Routing
+- Express static files: <https://expressjs.com/en/starter/static-files.html>
+- EJS documentation: <https://ejs.co/>
+- OWASP XSS Prevention Cheat Sheet: <https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html>
