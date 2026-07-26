@@ -1,8 +1,8 @@
 {
   "name": "nodejs-learning-path",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
-  "description": "Version-audited Node.js 24 LTS learning path covering ESM, Express 5, EJS, databases, security, testing and production practices.",
+  "description": "Version-audited Node.js 24 LTS professional learning path covering ESM, Express 5, databases, security, testing, GitHub, CI/CD and AI-powered development.",
   "type": "module",
   "engines": {
     "node": ">=24.18.0 <25",
@@ -32,6 +32,10 @@
     "ejs",
     "mysql2",
     "socket.io",
+    "github-actions",
+    "ci-cd",
+    "openai",
+    "ai-development",
     "learning-path"
   ]
 }
