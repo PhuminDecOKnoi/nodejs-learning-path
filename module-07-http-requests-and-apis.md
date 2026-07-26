@@ -1,183 +1,90 @@
 # Module 7: HTTP Requests and APIs
 
-## 1. Overview
-Module นี้จะอธิบายการทำ HTTP Request จาก Node.js เพื่อเชื่อมต่อกับ API ภายนอก
-ซึ่งเป็นพื้นฐานสำคัญของ:
-- REST API
-- Microservices
-- External integrations
-- Dashboard data fetching
+> Baseline: Node.js 24 LTS • Built-in `fetch` • Updated: 2026-07-26
 
-หัวข้อหลัก:
-- HTTP request
-- REST API
-- JSON response
-- callback async request
-- error handling
+## Learning outcomes
 
----
+ผู้เรียนจะส่ง HTTP request ด้วย built-in `fetch`, ตรวจ status/header, จัดการ timeout, parse JSON และออกแบบ error handling ที่เชื่อถือได้
 
-## 2. What is HTTP Request
-HTTP request คือการส่งคำขอไปยัง server เพื่อขอข้อมูล
+## Built-in fetch
 
-ตัวอย่าง:
-- ขอ weather data
-- ขอ user profile
-- ขอ stock price
-- ขอ database ผ่าน API
+Node.js รุ่นปัจจุบันมี standards-based `fetch()` ในตัว จึงไม่จำเป็นต้องติดตั้ง `node-fetch` สำหรับกรณีพื้นฐาน
 
----
+```js
+const response = await fetch("https://jsonplaceholder.typicode.com/users/1");
 
-## 3. Install Request Library
-```bash
-npm install request
+if (!response.ok) {
+  throw new Error(`HTTP ${response.status}`);
+}
+
+const user = await response.json();
+console.log(user);
 ```
 
----
+`fetch()` จะ reject เมื่อเกิด network error แต่ HTTP 404/500 ไม่ถือว่าเป็น rejected Promise จึงต้องตรวจ `response.ok`
 
-## 4. Basic HTTP Request
-```javascript
-const request = require("request");
+## Query parameters
 
-const url = "https://jsonplaceholder.typicode.com/todos/1";
+```js
+const url = new URL("https://example.com/search");
+url.searchParams.set("q", "node.js");
+url.searchParams.set("limit", "10");
 
-request({ url: url }, (error, response) => {
-    console.log(response.body);
+const response = await fetch(url);
+```
+
+## POST JSON
+
+```js
+const response = await fetch("https://example.com/api/users", {
+  method: "POST",
+  headers: {
+    "content-type": "application/json",
+    "accept": "application/json"
+  },
+  body: JSON.stringify({ name: "Phumin" })
 });
-```
 
-Output (JSON string)
-```
-{
-  "userId": 1,
-  "id": 1,
-  "title": "delectus aut autem",
-  "completed": false
+if (!response.ok) {
+  const detail = await response.text();
+  throw new Error(`Request failed: ${response.status} ${detail}`);
 }
 ```
 
----
+## Timeout and cancellation
 
-## 5. Parse JSON Response
-```javascript
-const request = require("request");
-
-const url = "https://jsonplaceholder.typicode.com/todos/1";
-
-request({ url: url }, (error, response) => {
-    const data = JSON.parse(response.body);
-    console.log(data.title);
+```js
+const response = await fetch("https://example.com/api", {
+  signal: AbortSignal.timeout(5_000)
 });
 ```
 
----
+กำหนด timeout เสมอสำหรับ external service และอย่า retry request แบบไม่จำกัด
 
-## 6. Using json option
-```javascript
-const request = require("request");
+## HTTP client checklist
 
-const url = "https://jsonplaceholder.typicode.com/todos/1";
+- validate URL และ input
+- กำหนด timeout
+- ตรวจ status code
+- จำกัด response size เมื่อข้อมูลอาจมีขนาดใหญ่
+- อย่า log authorization header หรือ token
+- retry เฉพาะ error ที่เหมาะสมและใช้ backoff
+- ระวัง SSRF เมื่อตัวผู้ใช้กำหนดปลายทาง URL ได้
 
-request({ url: url, json: true }, (error, response) => {
-    console.log(response.body.title);
-});
-```
+## Native HTTP module
 
----
+`node:http` และ `node:https` ยังสำคัญสำหรับการเรียน protocol ระดับต่ำและการสร้าง server แต่ application ทั่วไปควรเริ่มจาก `fetch()` สำหรับ outbound request
 
-## 7. Handling Errors
-```javascript
-const request = require("request");
+## Checklist
 
-const url = "https://invalid-url";
+- [ ] ใช้ built-in `fetch()` ได้
+- [ ] ตรวจ `response.ok` และ status code ได้
+- [ ] ส่ง JSON พร้อม headers ได้
+- [ ] ใช้ URL/URLSearchParams ได้
+- [ ] กำหนด timeout และจัดการ AbortError ได้
 
-request({ url: url, json: true }, (error, response) => {
+## Official references
 
-    if (error) {
-        return console.log("Unable to connect");
-    }
-
-    console.log(response.body);
-});
-```
-
----
-
-## 8. Real Example: Weather API Simulation
-```javascript
-const request = require("request");
-
-const url = "https://api.agify.io/?name=phumin";
-
-request({ url: url, json: true }, (error, response) => {
-
-    if (error) {
-        return console.log("Error");
-    }
-
-    console.log("Name:", response.body.name);
-    console.log("Age:", response.body.age);
-});
-```
-
----
-
-## 9. HTTP Request Flow
-1. send request
-2. wait async
-3. server respond JSON
-4. callback executed
-5. parse data
-6. use data
-
----
-
-## 10. Callback Pattern in API
-```javascript
-const getUser = (id, callback) => {
-
-    const url = "https://jsonplaceholder.typicode.com/users/" + id;
-
-    request({ url: url, json: true }, (error, response) => {
-
-        if (error) {
-            return callback("Error", null);
-        }
-
-        callback(null, response.body);
-    });
-};
-
-getUser(1, (error, user) => {
-
-    if (error) {
-        return console.log(error);
-    }
-
-    console.log(user.name);
-});
-```
-
----
-
-## 11. Key Concepts
-- HTTP request ใช้ดึงข้อมูล
-- API ส่งข้อมูลแบบ JSON
-- async callback รับผลลัพธ์
-- ต้อง handle error
-- ใช้ request library
-
----
-
-## 12. Learning Checklist
-- [ ] เข้าใจ HTTP request
-- [ ] ใช้ request library ได้
-- [ ] parse JSON response ได้
-- [ ] handle error ได้
-- [ ] เรียก API ภายนอกได้
-- [ ] ใช้ callback กับ API ได้
-
----
-
-## 13. Next Module
-Module 8: Express.js Web Server
+- Globals/fetch: <https://nodejs.org/docs/latest-v24.x/api/globals.html#fetch>
+- HTTP: <https://nodejs.org/docs/latest-v24.x/api/http.html>
+- URL: <https://nodejs.org/docs/latest-v24.x/api/url.html>
