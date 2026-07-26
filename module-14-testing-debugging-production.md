@@ -1,148 +1,117 @@
 # Module 14: Testing and Debugging in Production
 
-## 1. Overview
-Module นี้สอนการทดสอบและ debugging สำหรับ production
-เพื่อให้ระบบมีความเสถียรและตรวจสอบปัญหาได้ง่าย
+> Baseline: Node.js 24 LTS • Built-in test runner • Updated: 2026-07-26
 
-หัวข้อหลัก:
-- testing strategy
-- unit testing
-- integration testing
-- logging
-- debugging production
-- monitoring
+## Learning outcomes
 
----
+ผู้เรียนจะเขียน unit/integration tests ด้วย `node:test`, ตรวจ coverage, ทดสอบ HTTP API และวิเคราะห์ production incident จาก logs, metrics และ diagnostic reports ได้
 
-## 2. Why Testing Important
-- ลด bug
-- ป้องกัน regression
-- เพิ่มความมั่นใจ deploy
-- maintain code ง่าย
+## Built-in test runner
 
----
+Node.js มี test runner ในตัว:
 
-## 3. Install Jest
-```bash
-npm install --save-dev jest
-```
+```js
+import test from "node:test";
+import assert from "node:assert/strict";
 
-package.json
-```json
-{
-  "scripts": {
-    "test": "jest"
-  }
+function add(a, b) {
+  return a + b;
 }
+
+test("add returns the sum", () => {
+  assert.equal(add(2, 3), 5);
+});
 ```
 
-Run
+รัน:
+
 ```bash
-npm test
+node --test
 ```
 
----
+Watch และ coverage:
 
-## 4. Basic Unit Test
-math.js
-```javascript
-const sum = (a, b) => a + b;
-module.exports = sum;
-```
-
-math.test.js
-```javascript
-const sum = require("./math");
-
-test("adds 1 + 2", () => {
-    expect(sum(1,2)).toBe(3);
-});
-```
-
----
-
-## 5. Testing API (Supertest)
 ```bash
-npm install --save-dev supertest
+node --test --watch
+node --test --experimental-test-coverage
 ```
 
-example
-```javascript
-const request = require("supertest");
-const app = require("../app");
+ตรวจเอกสารเวอร์ชันที่ใช้งานก่อนนำ experimental flag ไปใช้ใน production workflow
 
-test("GET /users", async () => {
-    const response = await request(app).get("/users");
-    expect(response.status).toBe(200);
+## Async test
+
+```js
+import test from "node:test";
+import assert from "node:assert/strict";
+
+test("loads user", async () => {
+  const user = await userService.findById("u-1");
+  assert.equal(user.id, "u-1");
 });
 ```
 
----
+## Test pyramid
 
-## 6. Logging
-ติดตั้ง
+- **Unit:** function/service แยกส่วน รวดเร็ว
+- **Integration:** database, filesystem, queue หรือ API boundary
+- **End-to-end:** user flow สำคัญผ่านระบบจริง
+
+ไม่ควรพึ่ง E2E อย่างเดียว เพราะช้าและวิเคราะห์ root cause ยาก
+
+## HTTP integration testing
+
+แนวทางที่ทดสอบง่ายคือ export app โดยไม่ `listen()` ใน module เดียวกัน:
+
+```js
+// app.js
+export const app = express();
+
+// server.js
+import { app } from "./app.js";
+app.listen(process.env.PORT ?? 3000);
+```
+
+จากนั้นใช้ HTTP test client เช่น Supertest หรือสร้าง temporary server ใน test
+
+## Production debugging
+
+ใช้สามสัญญาณหลัก:
+
+1. **Logs:** structured event, request ID, error cause
+2. **Metrics:** rate, errors, duration, saturation
+3. **Traces:** request flow ข้าม service
+
+ห้าม debug production ด้วยการแก้ source สดบน server ควร reproduce, patch ผ่าน version control, test และ deploy artifact ใหม่
+
+## Diagnostic tools
+
 ```bash
-npm install morgan
+node --trace-warnings src/server.js
+node --report-on-fatalerror src/server.js
+node --cpu-prof src/server.js
+node --heap-prof src/server.js
 ```
 
-ใช้งาน
-```javascript
-const morgan = require("morgan");
-app.use(morgan("combined"));
+CPU/heap profiles อาจมีข้อมูลระบบหรือข้อมูลผู้ใช้ ต้องจัดเก็บและแชร์อย่างระมัดระวัง
+
+## Incident workflow
+
+```text
+Detect → Triage → Mitigate → Diagnose → Fix → Verify → Post-incident review
 ```
 
----
+แยก mitigation เช่น rollback/disable feature ออกจาก permanent fix และเพิ่ม regression test หลังเหตุการณ์
 
-## 7. Error Handling Middleware
-```javascript
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send("Something broke!");
-});
-```
+## Checklist
 
----
+- [ ] เขียน unit และ async tests ด้วย `node:test` ได้
+- [ ] แยก unit/integration/E2E ได้
+- [ ] ทดสอบ Express app โดยแยก app/server ได้
+- [ ] ใช้ logs, metrics และ traces วิเคราะห์ปัญหาได้
+- [ ] สร้าง CPU/heap/diagnostic report อย่างปลอดภัยได้
 
-## 8. Debugging Production
-เทคนิค:
-- log error
-- log request
-- use monitoring
-- track performance
+## Official references
 
----
-
-## 9. Health Check Endpoint
-```javascript
-app.get("/health", (req, res) => {
-    res.send({
-        status: "ok",
-        uptime: process.uptime()
-    });
-});
-```
-
----
-
-## 10. Monitoring Tools
-นิยมใช้:
-- PM2 monitor
-- Grafana
-- Datadog
-- New Relic
-- LogRocket
-
----
-
-## 11. Production Testing Checklist
-- [ ] unit test
-- [ ] API test
-- [ ] logging enabled
-- [ ] error middleware
-- [ ] health endpoint
-- [ ] monitoring setup
-
----
-
-## 12. Next Module
-Module 15: Project Structure and Best Practices
+- Test runner: <https://nodejs.org/docs/latest-v24.x/api/test.html>
+- Diagnostics: <https://nodejs.org/en/learn/diagnostics>
+- Report API: <https://nodejs.org/docs/latest-v24.x/api/report.html>
