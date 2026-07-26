@@ -1,217 +1,107 @@
 # Module 6: Asynchronous Programming
 
-## 1. Overview
-Module นี้อธิบายแนวคิดสำคัญของ Node.js คือ **Asynchronous Programming**
-ซึ่งทำให้ Node.js สามารถทำงานหลายอย่างพร้อมกันได้โดยไม่ block
+> Baseline: Node.js 24 LTS • Promise/async–await first • Updated: 2026-07-26
 
-หัวข้อหลัก:
-- synchronous vs asynchronous
-- callback
-- event loop
-- setTimeout
-- async workflow
-- handling async errors
+## Learning outcomes
 
----
+ผู้เรียนจะอธิบาย event loop, microtask queue, callback, Promise, `async`/`await` และการยกเลิกงานด้วย `AbortController` ได้
 
-## 2. Synchronous vs Asynchronous
+## Synchronous vs asynchronous
 
-### Synchronous (ทำงานตามลำดับ)
-```javascript
-console.log("Start");
-console.log("Process");
-console.log("End");
+Synchronous code ทำงานต่อเนื่องบน call stack ส่วน asynchronous API คืน control ให้ event loop และแจ้งผลภายหลัง
+
+```js
+console.log("A");
+setTimeout(() => console.log("timer"), 0);
+queueMicrotask(() => console.log("microtask"));
+console.log("B");
 ```
 
-Output
-```
-Start
-Process
-End
-```
+ผลโดยทั่วไป:
 
-### Asynchronous
-```javascript
-console.log("Start");
-
-setTimeout(() => {
-    console.log("Async Task");
-}, 2000);
-
-console.log("End");
+```text
+A
+B
+microtask
+timer
 ```
 
-Output
-```
-Start
-End
-Async Task
-```
+Promise callbacks และ `queueMicrotask()` อยู่ใน microtask queue ซึ่งถูกประมวลผลก่อน timer phase ถัดไป
 
----
+## Promise and async/await
 
-## 3. setTimeout Example
-```javascript
-setTimeout(() => {
-    console.log("2 seconds passed");
-}, 2000);
-```
+```js
+import { readFile } from "node:fs/promises";
 
----
+async function loadUser() {
+  const raw = await readFile("user.json", "utf8");
+  return JSON.parse(raw);
+}
 
-## 4. Non-blocking Behavior
-Node.js ไม่หยุดรอ async task
-
-```javascript
-console.log("1");
-
-setTimeout(() => {
-    console.log("2");
-}, 0);
-
-console.log("3");
+try {
+  const user = await loadUser();
+  console.log(user);
+} catch (error) {
+  console.error("Load failed", error);
+}
 ```
 
-Output
-```
-1
-3
-2
-```
+`async` function คืน Promise เสมอ และ `await` ใช้ได้ใน async function หรือ top-level ESM
 
----
+## Parallel independent work
 
-## 5. Callback Function
-callback คือ function ที่ส่งเข้าไปให้เรียกภายหลัง
-
-```javascript
-const fetchData = (callback) => {
-    setTimeout(() => {
-        callback("Data loaded");
-    }, 1000);
-};
-
-fetchData((data) => {
-    console.log(data);
-});
+```js
+const [profile, permissions] = await Promise.all([
+  loadProfile(),
+  loadPermissions()
+]);
 ```
 
-Output
-```
-Data loaded
-```
+ใช้ `Promise.all()` เมื่อทุกงานต้องสำเร็จ หากต้องการผลทุกงานแม้บางงานล้มเหลว ใช้ `Promise.allSettled()`
 
----
+## Cancellation and timeout
 
-## 6. Callback with Error Handling
-```javascript
-const fetchUser = (callback) => {
-    const error = false;
+```js
+const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 5_000);
 
-    if (error) {
-        callback("Error occurred");
-    } else {
-        callback(null, { name: "Phumin" });
-    }
-};
-
-fetchUser((error, user) => {
-    if (error) {
-        return console.log(error);
-    }
-
-    console.log(user.name);
-});
+try {
+  const response = await fetch("https://example.com/api", {
+    signal: controller.signal
+  });
+  console.log(await response.json());
+} finally {
+  clearTimeout(timeout);
+}
 ```
 
----
+## Event loop accuracy
 
-## 7. Async Example Simulation
-```javascript
-const getWeather = (city, callback) => {
-    setTimeout(() => {
-        callback(null, "Sunny in " + city);
-    }, 1500);
-};
+- Node.js ไม่ได้ส่ง async operation ทุกชนิดไป “Web API” แบบ browser
+- network I/O มักใช้ OS event notification
+- file system, DNS บางรูปแบบ และ crypto บางงานใช้ libuv worker pool
+- CPU-bound JavaScript ยัง block event loop ได้
 
-getWeather("Bangkok", (error, result) => {
-    console.log(result);
-});
-```
+สำหรับ CPU-heavy work ให้พิจารณา `worker_threads`, child process หรือ job queue
 
----
+## Common mistakes
 
-## 8. Event Loop Concept
-Node.js ทำงานด้วย:
-- Call Stack
-- Callback Queue
-- Event Loop
+- ลืม `await`
+- ใช้ `forEach(async () => ...)` แล้วคาดว่าจะรอครบ
+- ทำงานอิสระแบบเรียงทีละงานแทน `Promise.all()`
+- ไม่กำหนด timeout/cancellation
+- กลืน error ด้วย `catch` ที่ไม่ log หรือไม่ rethrow
 
-Flow:
-1. code เข้า call stack
-2. async ส่งไป Web API
-3. callback เข้า queue
-4. event loop ส่งกลับเข้า stack
+## Checklist
 
----
+- [ ] อธิบาย callback, Promise และ async/await ได้
+- [ ] แยก microtask ออกจาก timer ได้
+- [ ] ใช้ `Promise.all()` อย่างถูกต้อง
+- [ ] ใช้ AbortController เพื่อยกเลิกงานได้
+- [ ] รู้ว่า CPU-bound work กระทบ event loop อย่างไร
 
-## 9. Multiple Async Tasks
-```javascript
-setTimeout(() => {
-    console.log("Task 1");
-}, 3000);
+## Official references
 
-setTimeout(() => {
-    console.log("Task 2");
-}, 1000);
-
-console.log("Start");
-```
-
-Output
-```
-Start
-Task 2
-Task 1
-```
-
----
-
-## 10. Real Use Case: Async File Read
-```javascript
-const fs = require("fs");
-
-fs.readFile("notes.txt", (err, data) => {
-    if (err) {
-        return console.log("Error reading file");
-    }
-
-    console.log(data.toString());
-});
-
-console.log("Reading file...");
-```
-
----
-
-## 11. Key Concepts
-- Node.js เป็น non-blocking
-- async code ไม่รอ
-- callback ใช้รับผลลัพธ์
-- event loop จัดการ async
-- async ทำให้ server เร็ว
-
----
-
-## 12. Learning Checklist
-- [ ] เข้าใจ async vs sync
-- [ ] ใช้ setTimeout ได้
-- [ ] เข้าใจ callback
-- [ ] อ่าน flow async ได้
-- [ ] เข้าใจ event loop
-- [ ] ใช้ async file read ได้
-
----
-
-## 13. Next Module
-Module 7: HTTP Server and Express Basics
+- Asynchronous context: <https://nodejs.org/docs/latest-v24.x/api/async_context.html>
+- Timers: <https://nodejs.org/docs/latest-v24.x/api/timers.html>
+- Worker threads: <https://nodejs.org/docs/latest-v24.x/api/worker_threads.html>
