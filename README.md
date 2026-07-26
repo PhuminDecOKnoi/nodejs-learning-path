@@ -1,146 +1,121 @@
-# Node.js Learning Path (Lessons 1–15)
+# Node.js Learning Path
 
-สรุปฉบับย่อสำหรับการเรียน Node.js ตั้งแต่พื้นฐานจนถึงโครงสร้างโปรเจกต์ระดับ Production
+> Consolidated learning repository for Node.js fundamentals, Express, EJS, database integration, real-time applications, testing, deployment and modern development workflow.
 
----
+[![Node.js](https://img.shields.io/badge/Node.js-24.18.0%20LTS-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-2.0.0-orange.svg)](package.json)
 
-## Overview
-ชุดบทเรียนนี้ครอบคลุมเส้นทางการเรียนรู้ Node.js แบบครบลำดับ จากการติดตั้ง การเขียนสคริปต์แรก การใช้ modules และ npm ไปจนถึงการสร้าง REST API เชื่อมฐานข้อมูล ทำ authentication, deployment, testing และออกแบบ project structure ที่ขยายต่อได้
+## ภาพรวม
 
----
+Repository นี้รวมและปรับปรุงเนื้อหาจากโครงการ Node.js เดิมของ `PhuminDecOKnoi` ให้เป็นแหล่งเรียนรู้หลักเพียงแห่งเดียว ตั้งแต่พื้นฐาน Node.js ไปจนถึง Express, EJS, MySQL, Socket.IO, REST API, authentication, testing, deployment และโครงการฝึกปฏิบัติ
 
-## Lesson Summary
+## Repository ที่นำมารวม
 
-### 1) Introduction to Node.js
-- เข้าใจว่า Node.js คือ JavaScript Runtime ที่รันนอก browser
-- รู้จัก V8, event-driven, non-blocking I/O
-- เห็นภาพว่า Node.js เหมาะกับ backend, API, CLI และ real-time systems
+- `my-first-node.js`
+- `my-express-node.js`
+- `my-ejs-node.js`
+- `Alison-Beginning-Node-JS-Using-a-Game-Project`
+- `Beginning-Node-JS-Using-a-Game-Project-Game-only-`
+- `nodejs-learning-path`
 
-### 2) Environment Setup and First Script
-- ติดตั้ง Node.js และเครื่องมือพื้นฐาน
-- ตรวจสอบเวอร์ชันด้วย `node -v` และ `npm -v`
-- สร้างและรันไฟล์ `.js` แรกได้
+รายละเอียดการย้ายและ dependency ที่ปรับปรุงอยู่ใน [MIGRATION.md](MIGRATION.md)
 
-### 3) Modules, require, exports, npm
-- ใช้ `require()` โหลด built-in, custom และ third-party modules
-- ใช้ `module.exports` แยก logic เป็นหลายไฟล์
-- เริ่มต้นใช้งาน `npm` และ `package.json`
+## Technology baseline
 
-### 4) File System, JSON, CLI Arguments
-- ใช้ `fs` อ่าน/เขียนไฟล์
-- ใช้ `JSON.stringify()` และ `JSON.parse()`
-- รับค่าจาก command line ผ่าน `process.argv`
+| Component | Version / Policy |
+|---|---|
+| Node.js | `24.18.0 LTS` |
+| npm | `>=11` |
+| Express | `5.x` |
+| EJS | `6.x` |
+| Socket.IO | `4.8.x` |
+| MySQL client | `mysql2` |
+| Development runner | `nodemon 3.1.x` |
+| License | MIT |
 
-### 5) Debugging and Error Reading
-- ใช้ `console.log()` และ `debugger`
-- อ่าน `ReferenceError`, `SyntaxError`, `TypeError`
-- เข้าใจ stack trace และวิธีไล่ bug อย่างเป็นระบบ
+> สำหรับหลักสูตรและตัวอย่างที่ต้องการความเสถียร ใช้ Node.js LTS เป็นฐาน ส่วน Node.js Current ใช้เพื่อทดลองฟีเจอร์ใหม่เท่านั้น
 
-### 6) Asynchronous Programming
-- เข้าใจ sync vs async
-- ใช้ `setTimeout()` และ callback
-- เข้าใจ call stack, callback queue และ event loop
-- มองเห็นแนวคิด non-blocking ของ Node.js
+## โครงสร้างหลัก
 
-### 7) HTTP Requests and APIs
-- ส่ง HTTP requests จาก Node.js
-- ใช้งาน API ภายนอกและรับข้อมูล JSON
-- parse response และ handle error ได้
-
-### 8) Web Servers with Express
-- สร้าง web server ด้วย Express
-- สร้าง routes และส่ง response แบบ text / JSON
-- ใช้ middleware และ serve static files ได้
-
-### 9) HTML5, Static Assets, and Templating
-- เชื่อม Express กับ HTML5
-- serve CSS / JS / static assets
-- ใช้ template engine เช่น Handlebars เพื่อ render dynamic HTML
-
-### 10) REST API Design and Routing
-- เข้าใจหลักการ REST และ HTTP methods
-- ออกแบบ CRUD endpoints
-- ใช้ Express Router แยก route ออกจากไฟล์หลัก
-- วางโครงสร้าง API ให้ขยายง่าย
-
-### 11) Database Integration
-- เชื่อม Node.js กับฐานข้อมูล
-- เรียนรู้ CRUD กับ MongoDB
-- นำ database ไปใช้ร่วมกับ Express API
-- เปลี่ยนจาก in-memory data ไปสู่ persistent storage
-
-### 12) Authentication and Security
-- เข้าใจ Authentication vs Authorization
-- hash password ด้วย bcrypt
-- ใช้ JWT สำหรับ token-based auth
-- สร้าง auth middleware และ protected routes
-
-### 13) Deployment and Production
-- แยก development กับ production
-- ใช้ environment variables ผ่าน `.env`
-- ตั้งค่า start script และ process manager
-- เข้าใจแนวคิด deployment ไปยัง cloud platform
-
-### 14) Testing and Debugging in Production
-- เขียน unit tests และ API tests
-- ใช้ Jest และ Supertest
-- เพิ่ม logging, error handling และ health check
-- เตรียมระบบให้ตรวจสอบปัญหาใน production ได้ง่าย
-
-### 15) Project Structure and Best Practices
-- ออกแบบ project structure แบบ production-ready
-- แยก routes, controllers, services, models, middleware
-- ใช้ naming conventions ที่สม่ำเสมอ
-- ทำ centralized error handling และรองรับ scalability
-
----
-
-## Recommended Learning Sequence
 ```text
-Node Basics
-→ Setup
-→ Modules / npm
-→ File System / JSON / CLI
-→ Debugging
-→ Async Programming
-→ HTTP Requests
-→ Express Web Server
-→ HTML + Templating
-→ REST API Design
-→ Database
-→ Authentication
-→ Deployment
-→ Testing
-→ Project Structure
+nodejs-learning-path/
+├── README.md
+├── LICENSE
+├── MIGRATION.md
+├── package.json
+├── .nvmrc
+├── module-01-*.md ... module-18-*.md
+└── examples/
+    ├── express-ejs/
+    │   ├── src/app.js
+    │   └── views/index.ejs
+    ├── mysql-crud/
+    └── realtime-game/
 ```
 
----
+## เริ่มต้นใช้งาน
 
-## Core Skills You Will Gain
-- เขียน Node.js script และ backend ได้
-- จัดโครงสร้างโปรเจกต์อย่างเป็นระบบ
-- สร้าง REST API ด้วย Express
-- เชื่อม MongoDB และจัดการข้อมูลแบบ CRUD
-- ทำระบบ login / token auth
-- deploy และดูแลระบบ production ได้
-- เขียน tests และ debug ได้อย่างมีหลักการ
+```bash
+# ใช้ Node.js รุ่นที่กำหนดใน .nvmrc
+nvm use
 
----
+# ติดตั้ง dependencies
+npm install
 
-## Final Outcome
-เมื่อเรียนครบ Lesson 1–15 คุณจะสามารถ:
-- สร้าง Node.js backend project ได้ตั้งแต่ต้นจน deploy
-- วางโครงสร้างระบบสำหรับงานจริง
-- ต่อฐานข้อมูลและระบบ auth ได้
-- ทำ API สำหรับ dashboard, web app และ internal tools ได้
-- พัฒนาต่อยอดสู่ GitHub workflow, CI/CD และ AI-assisted development ได้
+# รันตัวอย่าง Express + EJS
+npm run dev
+```
 
----
+เปิดเบราว์เซอร์ที่:
 
-## Suggested Next Step
-ต่อยอดไปยัง:
-- Git / GitHub workflow
-- CI/CD automation
-- Render / cloud deployment
-- AI coding workflow
-- real-world project portfolio
+```text
+http://localhost:3000
+```
+
+ตรวจสอบ health endpoint:
+
+```text
+http://localhost:3000/api/health
+```
+
+## Learning path
+
+1. Introduction to Node.js
+2. Environment Setup and First Script
+3. Modules, ESM, CommonJS and npm
+4. File System, JSON and CLI Arguments
+5. Debugging and Error Reading
+6. Asynchronous Programming and Event Loop
+7. HTTP Requests, Fetch and APIs
+8. Web Servers with Express 5
+9. HTML, Static Assets and EJS
+10. REST API Design and Routing
+11. Database Integration with MySQL2 and MongoDB
+12. Authentication and Security
+13. Deployment and Production Configuration
+14. Testing, Logging and Production Debugging
+15. Project Structure and Best Practices
+16. Git and GitHub Workflow
+17. CI/CD Automation
+18. Modern AI-Assisted Development Workflow
+
+## สิ่งที่ปรับปรุงจาก Repository เดิม
+
+- เปลี่ยน Express `4.18.2` เป็น Express `5.x`
+- เปลี่ยน EJS `3.1.9` เป็น EJS `6.x`
+- เปลี่ยนแพ็กเกจ `mysql` เป็น `mysql2`
+- ย้าย `nodemon` ไปเป็น `devDependency`
+- เลิกใช้แพ็กเกจ `uppercase` และใช้ `toUpperCase()` ของ JavaScript
+- เลิกติดตั้งแพ็กเกจ `node` ภายในโครงการ และใช้ `.nvmrc` กับ `engines.node`
+- ตัด `init`, `inity`, `json` และ dependency ที่ไม่จำเป็น
+- ใช้ built-in middleware ของ Express แทน `body-parser` ในตัวอย่างใหม่
+- เพิ่ม health check และ centralized error handling
+- กำหนด Version ของ repository เป็น `2.0.0`
+
+## License
+
+โครงการนี้เผยแพร่ภายใต้ [MIT License](LICENSE) สามารถนำไปใช้ ศึกษา แก้ไข และเผยแพร่ต่อได้ตามเงื่อนไขของ License
+
+Third-party packages retain their respective licenses.
