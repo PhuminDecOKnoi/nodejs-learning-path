@@ -1,137 +1,125 @@
 # Module 2: Environment Setup and First Script
 
-## 1. Environment Setup
-ก่อนเริ่มใช้งาน Node.js ต้องติดตั้งเครื่องมือหลัก:
+> Baseline: Node.js 24 LTS • npm 11.x • Updated: 2026-07-26
 
-- Node.js
-- npm (ติดมากับ Node.js)
-- Code Editor (แนะนำ VS Code)
-- Terminal / Command Prompt
+## Learning outcomes
 
-ตรวจสอบเวอร์ชัน
+ผู้เรียนจะติดตั้ง ตรวจสอบ และควบคุมเวอร์ชัน Node.js รวมทั้งสร้างโครงการ ESM ที่ทำงานได้บน macOS, Windows และ Linux
 
-```bash
-node -v
-npm -v
+## Recommended tools
+
+- Node.js 24 LTS
+- npm ซึ่งติดตั้งพร้อม Node.js
+- VS Code หรือ editor ที่รองรับ JavaScript
+- Git
+- Terminal: zsh/bash, PowerShell หรือ Windows Terminal
+
+## Version management
+
+แนะนำให้ใช้ version manager แทนการติดตั้งทับหลายรุ่น เช่น `nvm`, `fnm` หรือ Volta
+
+Repository นี้กำหนด `.nvmrc` เป็น:
+
+```text
+24.18.0
 ```
 
-หากแสดง version แสดงว่าพร้อมใช้งาน
+เมื่อใช้ nvm:
 
----
+```bash
+nvm install
+nvm use
+```
 
-## 2. Creating First Project
+ตรวจสอบ environment:
 
-สร้างโฟลเดอร์โปรเจกต์
+```bash
+node --version
+npm --version
+node -p "process.versions"
+```
+
+## Create a project
 
 ```bash
 mkdir node-learning
 cd node-learning
+npm init -y
+npm pkg set type=module
+npm pkg set engines.node=">=24 <25"
 ```
 
-สร้างไฟล์
+สร้าง `src/app.js`:
+
+```js
+const name = process.argv[2] ?? "Developer";
+console.log(`Hello, ${name}`);
+```
+
+เพิ่ม script:
 
 ```bash
-touch app.js
+npm pkg set scripts.start="node src/app.js"
 ```
 
----
-
-## 3. First Script
-
-ไฟล์ app.js
-
-```javascript
-console.log("My First Node.js Script");
-```
-
-Run
+รัน:
 
 ```bash
-node app.js
+npm start -- Phumin
 ```
 
-Output
+## Cross-platform note
 
-```
-My First Node.js Script
-```
+คำสั่ง `touch app.js` ไม่มีใน Windows PowerShell ทุกเครื่อง จึงสร้างไฟล์ผ่าน editor หรือใช้:
 
----
-
-## 4. Using Variables
-
-```javascript
-const message = "Node.js Environment Ready";
-console.log(message);
+```powershell
+New-Item -ItemType File src/app.js
 ```
 
----
-
-## 5. Using Arguments
-
-```javascript
-const name = process.argv[2];
-
-console.log("Hello", name);
-```
-
-Run
-
-```bash
-node app.js Phumin
-```
-
-Output
-
-```
-Hello Phumin
-```
-
----
-
-## 6. Using Node REPL
-
-เปิด REPL
+## REPL และ built-in help
 
 ```bash
 node
 ```
 
-ทดลอง
+คำสั่งสำคัญ:
 
-```javascript
-2 + 3
-```
-
-Exit
-
-```bash
+```text
+.help
+.editor
 .exit
 ```
 
----
+Node.js ยังรัน code สั้น ๆ ได้โดยไม่สร้างไฟล์:
 
-## 7. Key Concepts
+```bash
+node --eval "console.log(process.platform)"
+```
 
-- Node runtime
-- Terminal execution
-- process.argv
-- REPL
-- Script execution
+## Environment variables
 
----
+อ่านค่าผ่าน `process.env` และห้าม commit secret:
 
-## 8. Learning Checklist
+```js
+const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+console.log({ port });
+```
 
-- [ ] ติดตั้ง Node.js ได้
-- [ ] ตรวจสอบ version ได้
-- [ ] สร้างไฟล์ .js ได้
-- [ ] รัน script ได้
-- [ ] ใช้ process.argv ได้
-- [ ] ใช้ REPL ได้
+Node.js รุ่นปัจจุบันรองรับไฟล์ environment ผ่าน CLI:
 
----
+```bash
+node --env-file=.env src/app.js
+```
 
-## 9. Next Module
+## Checklist
 
-Module 3: Node.js Module System
+- [ ] ใช้ Node.js 24 LTS ได้
+- [ ] ควบคุมเวอร์ชันด้วย `.nvmrc` ได้
+- [ ] สร้าง `package.json` แบบ ESM ได้
+- [ ] ใช้ npm scripts และ `process.argv` ได้
+- [ ] เข้าใจ `process.env` และไม่เก็บ secret ใน Git
+
+## Official references
+
+- CLI: <https://nodejs.org/docs/latest-v24.x/api/cli.html>
+- npm documentation: <https://docs.npmjs.com/>
