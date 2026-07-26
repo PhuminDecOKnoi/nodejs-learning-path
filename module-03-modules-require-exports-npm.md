@@ -1,212 +1,130 @@
-# Module 3: Modules, require, exports, npm
+# Module 3: Modules, ESM, CommonJS, and npm
 
-## 1. What are Modules?
-ใน Node.js, **module** คือหน่วยของโค้ดที่แยกออกเป็นไฟล์หรือแพ็กเกจ เพื่อให้โค้ดเป็นระเบียบ นำกลับมาใช้ซ้ำได้ และดูแลง่าย
+> Baseline: Node.js 24 LTS • ESM-first • Updated: 2026-07-26
 
-Node.js รองรับ 3 กลุ่มหลัก:
-- **Built-in modules** เช่น `fs`, `path`, `os`, `http`
-- **Custom modules** คือไฟล์ `.js` ที่เราสร้างเอง
-- **Third-party modules** คือแพ็กเกจที่ติดตั้งผ่าน `npm`
+## Learning outcomes
 
----
+ผู้เรียนจะใช้ ECMAScript Modules, เข้าใจ CommonJS, จัดการ dependency และใช้งาน lockfile ได้อย่างถูกต้อง
 
-## 2. Using `require()`
-`require()` ใช้สำหรับโหลด module เข้ามาใช้งาน
+## Module systems in Node.js
 
-### Example: Built-in Module
-```javascript
-const os = require("os");
+Node.js รองรับสองระบบหลัก:
 
-console.log("Platform:", os.platform());
-console.log("Home Directory:", os.homedir());
+1. **ECMAScript Modules (ESM):** `import` / `export`
+2. **CommonJS (CJS):** `require()` / `module.exports`
+
+หลักสูตรนี้ใช้ ESM เป็นค่าเริ่มต้น โดยกำหนด:
+
+```json
+{
+  "type": "module"
+}
 ```
 
-### Output Example
-```text
-Platform: darwin
-Home Directory: /Users/yourname
+## Built-in modules
+
+ใช้ prefix `node:` เพื่อแสดงชัดว่าเป็น built-in module:
+
+```js
+import os from "node:os";
+import path from "node:path";
+
+console.log(os.platform());
+console.log(path.join("data", "users.json"));
 ```
 
----
+## Custom ESM module
 
-## 3. Custom Modules with `module.exports`
-เราสามารถแยก logic ไปไว้ในอีกไฟล์หนึ่ง แล้ว export ออกมาใช้งานได้
+`src/math.js`:
 
-### File: `math.js`
-```javascript
-const add = (a, b) => {
-    return a + b;
-};
+```js
+export function add(a, b) {
+  return a + b;
+}
 
-const subtract = (a, b) => {
-    return a - b;
-};
-
-module.exports = {
-    add,
-    subtract
-};
+export const subtract = (a, b) => a - b;
 ```
 
-### File: `app.js`
-```javascript
-const math = require("./math");
+`src/app.js`:
 
-console.log("Add:", math.add(10, 5));
-console.log("Subtract:", math.subtract(10, 5));
+```js
+import { add, subtract } from "./math.js";
+
+console.log(add(10, 5));
+console.log(subtract(10, 5));
 ```
 
-### Output
-```text
-Add: 15
-Subtract: 5
+ESM local imports ต้องระบุนามสกุลไฟล์ เช่น `./math.js`
+
+## CommonJS compatibility
+
+ระบบเก่าอาจพบ:
+
+```js
+const os = require("node:os");
+module.exports = { /* ... */ };
 ```
 
----
+ไฟล์ CommonJS สามารถใช้ `.cjs` หรือโครงการที่ไม่ได้ตั้ง `"type": "module"` ส่วน ESM สามารถใช้ `.mjs`
 
-## 4. Export Single Function
-ถ้าต้องการ export แค่ function เดียว สามารถทำได้โดยตรง
-
-### File: `greet.js`
-```javascript
-module.exports = (name) => {
-    return `Hello, ${name}`;
-};
-```
-
-### File: `app.js`
-```javascript
-const greet = require("./greet");
-
-console.log(greet("Phumin"));
-```
-
-### Output
-```text
-Hello, Phumin
-```
-
----
-
-## 5. What is npm?
-**npm** ย่อมาจาก Node Package Manager  
-ใช้สำหรับติดตั้งและจัดการ third-party packages
-
-npm จะช่วยให้เราสามารถ:
-- ติดตั้ง package
-- เก็บ dependency ของโปรเจกต์
-- ใช้ scripts ใน `package.json`
-- แชร์หรือ reuse project configuration ได้
-
----
-
-## 6. Initialize Project with npm
+## npm workflow
 
 ```bash
 npm init -y
+npm install express
+npm install --save-dev nodemon
+npm uninstall package-name
+npm outdated
+npm audit
 ```
 
-คำสั่งนี้จะสร้างไฟล์ `package.json`
+ความหมายสำคัญ:
 
-### Example: `package.json`
+- `dependencies`: ต้องใช้ตอน application ทำงาน
+- `devDependencies`: ใช้เฉพาะพัฒนา ทดสอบ หรือ build
+- `package-lock.json`: ล็อก dependency tree เพื่อการติดตั้งที่ทำซ้ำได้
+- `npm ci`: ติดตั้งตาม lockfile เหมาะกับ CI
+
+ห้าม commit `node_modules/` แต่ควร commit `package-lock.json`
+
+## package.json example
+
 ```json
 {
   "name": "node-learning",
   "version": "1.0.0",
-  "main": "app.js",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
-    "start": "node app.js"
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "test": "node --test"
   }
 }
 ```
 
----
+Node.js มี watch mode ในตัว จึงไม่จำเป็นต้องใช้ nodemon สำหรับตัวอย่างพื้นฐานทุกกรณี
 
-## 7. Installing Third-party Packages
+## Security and maintenance
 
-ตัวอย่างติดตั้ง package `validator`
+- ตรวจชื่อ package และผู้เผยแพร่ก่อนติดตั้ง
+- หลีกเลี่ยง package ที่ไม่จำเป็นหรือไม่มีการดูแล
+- อย่าใช้ `npm audit fix --force` โดยไม่อ่าน breaking changes
+- กำหนด Node.js runtime ผ่าน `.nvmrc`/engines ไม่ใช่ติดตั้ง package ชื่อ `node` เป็น dependency
 
-```bash
-npm install validator
-```
+## Checklist
 
-เมื่อติดตั้งแล้ว จะได้:
-- โฟลเดอร์ `node_modules`
-- ไฟล์ `package-lock.json`
-- dependency ใน `package.json`
+- [ ] ใช้ ESM import/export ได้
+- [ ] อ่าน CommonJS เดิมได้
+- [ ] แยก dependencies และ devDependencies ได้
+- [ ] ใช้ `npm ci`, `npm outdated`, `npm audit` ได้
+- [ ] เข้าใจบทบาทของ lockfile
 
-### Example: Using `validator`
-```javascript
-const validator = require("validator");
+## Official references
 
-console.log(validator.isEmail("test@example.com"));
-console.log(validator.isURL("https://nodejs.org"));
-```
-
-### Output
-```text
-true
-true
-```
-
----
-
-## 8. Running with npm Scripts
-
-ถ้าใน `package.json` มี:
-
-```json
-"scripts": {
-  "start": "node app.js"
-}
-```
-
-เราสามารถรันได้ด้วยคำสั่ง:
-
-```bash
-npm start
-```
-
-แทนการใช้:
-
-```bash
-node app.js
-```
-
----
-
-## 9. Recommended Project Structure
-```text
-node-learning/
-├─ app.js
-├─ math.js
-├─ greet.js
-├─ package.json
-├─ package-lock.json
-└─ node_modules/
-```
-
----
-
-## 10. Key Concepts
-- Module คือหน่วยของโค้ดที่แยกเป็นสัดส่วน
-- `require()` ใช้โหลด built-in, custom, และ third-party modules
-- `module.exports` ใช้ส่งออก function / object
-- `npm` ใช้จัดการ package และ dependency
-- `package.json` คือศูนย์กลางการตั้งค่าโปรเจกต์
-
----
-
-## 11. Learning Checklist
-- [ ] เข้าใจว่า module คืออะไร
-- [ ] ใช้ `require()` ได้
-- [ ] สร้าง custom module ได้
-- [ ] ใช้ `module.exports` ได้
-- [ ] รู้จัก `npm init -y`
-- [ ] ติดตั้ง package ด้วย `npm install` ได้
-- [ ] เข้าใจบทบาทของ `package.json`
-
----
-
-## 12. Next Module
-Module 4: File System, JSON, CLI Arguments
+- Modules: <https://nodejs.org/docs/latest-v24.x/api/esm.html>
+- Packages: <https://nodejs.org/docs/latest-v24.x/api/packages.html>
+- npm: <https://docs.npmjs.com/>
