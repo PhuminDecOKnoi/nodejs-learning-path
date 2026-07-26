@@ -1,161 +1,92 @@
 # Module 12: Authentication and Security
 
-## 1. Overview
-Module นี้สอนการทำ Authentication และ Security สำหรับ Node.js API
-เพื่อป้องกันการเข้าถึงข้อมูลโดยไม่ได้รับอนุญาต
+> Baseline: Node.js 24 LTS • Express 5.x • Updated: 2026-07-26
 
-หัวข้อหลัก:
-- authentication
-- authorization
-- password hashing
-- JWT
-- middleware security
-- protected routes
+## Learning outcomes
 
----
+ผู้เรียนจะอธิบาย authentication/authorization, เก็บ password อย่างเหมาะสม, ใช้ cookie/token อย่างปลอดภัย และประเมินความเสี่ยงพื้นฐานของ API ได้
 
-## 2. Authentication vs Authorization
-Authentication = ยืนยันตัวตน  
-Authorization = กำหนดสิทธิ์
+## Authentication vs authorization
 
-Example
-- login = authentication
-- admin access = authorization
+- **Authentication:** ตรวจว่าเป็นใคร
+- **Authorization:** ตรวจว่ามีสิทธิ์ทำอะไร
 
----
+ต้องตรวจ authorization ที่ server ทุกครั้ง ไม่เชื่อ role หรือ permission ที่ client ส่งมา
 
-## 3. Install Dependencies
-```bash
-npm install bcryptjs jsonwebtoken
+## Password storage
+
+ห้ามเก็บ password แบบ plaintext หรือ reversible encryption ใช้ password hashing algorithm ที่ออกแบบมาโดยเฉพาะ เช่น Argon2id หรือ bcrypt พร้อม cost ที่เหมาะสม
+
+ตัวอย่างเชิงโครงสร้าง:
+
+```js
+const passwordHash = await passwordHasher.hash(password);
+const valid = await passwordHasher.verify(passwordHash, passwordAttempt);
 ```
 
----
+แยก implementation ไว้หลัง interface/service เพื่อปรับ algorithm หรือ cost ได้ในอนาคต
 
-## 4. Password Hashing
-```javascript
-const bcrypt = require("bcryptjs");
+## Sessions and cookies
 
-const password = "123456";
+สำหรับ browser application, server-side session ร่วมกับ cookie มักควบคุมการเพิกถอนสิทธิ์ได้ง่าย
 
-bcrypt.hash(password, 8, (error, hash) => {
-    console.log(hash);
-});
+Cookie สำคัญ:
+
+```text
+HttpOnly; Secure; SameSite=Lax; Path=/
 ```
 
----
+- ใช้ HTTPS ใน production
+- rotate session identifier หลัง login
+- ตั้ง idle/absolute expiration
+- ป้องกัน CSRF สำหรับ state-changing request ที่อาศัย cookie
+- ไม่ใช้ default in-memory session store ในหลาย instance
 
-## 5. Compare Password
-```javascript
-bcrypt.compare("123456", hash, (error, result) => {
-    console.log(result);
-});
-```
+## Token-based authentication
 
----
+JWT เป็นรูปแบบ token ไม่ใช่ระบบ security ที่สมบูรณ์ในตัวเอง
 
-## 6. JSON Web Token (JWT)
-```javascript
-const jwt = require("jsonwebtoken");
+ควรกำหนด:
 
-const token = jwt.sign(
-    { id: "user123" },
-    "secretkey"
-);
+- issuer, audience, expiration
+- key rotation
+- allow-list ของ algorithm
+- refresh-token policy และ revocation strategy
+- token storage ที่ลด XSS/CSRF risk ตาม architecture
 
-console.log(token);
-```
+อย่าใส่ข้อมูลลับหรือข้อมูลส่วนบุคคลเกินจำเป็นใน JWT payload เพราะ payload อ่านได้แม้ถูก signed
 
----
+## Input and API protection
 
-## 7. Verify Token
-```javascript
-const decoded = jwt.verify(token, "secretkey");
-console.log(decoded);
-```
+- validate และ normalize input
+- จำกัด request body
+- rate limit endpoint สำคัญ เช่น login/reset password
+- ใช้ parameterized queries
+- ตั้ง security headers/CSP
+- ป้องกัน account enumeration ด้วยข้อความตอบกลับที่ไม่เปิดเผยเกินจำเป็น
+- log security event โดยไม่ log credential/token
+- lock dependency และตรวจ vulnerability
 
----
+## Secrets
 
-## 8. Login Route Example
-```javascript
-app.post("/login", (req, res) => {
+- ไม่ commit `.env`, private key หรือ production credential
+- ใช้ secret manager ของ platform
+- rotate secret เมื่อสงสัยว่ารั่ว
+- จำกัดสิทธิ์ตาม least privilege
 
-    const { username, password } = req.body;
+## Security review checklist
 
-    if (username === "admin" && password === "1234") {
+- [ ] password ถูก hash ด้วย algorithm ที่เหมาะสม
+- [ ] cookie/session ตั้งค่า secure
+- [ ] authorization ตรวจที่ server
+- [ ] input ถูก validate
+- [ ] database query ไม่ต่อ string จาก user input
+- [ ] endpoint สำคัญมี rate limit
+- [ ] secret ไม่อยู่ใน Git/log
+- [ ] dependency มี maintenance process
 
-        const token = jwt.sign({ username }, "secret");
+## References
 
-        res.send({ token });
-    } else {
-        res.status(401).send("Invalid login");
-    }
-
-});
-```
-
----
-
-## 9. Auth Middleware
-```javascript
-const auth = (req, res, next) => {
-
-    const token = req.header("Authorization");
-
-    try {
-        const decoded = jwt.verify(token, "secret");
-        req.user = decoded;
-        next();
-    } catch (e) {
-        res.status(401).send("Unauthorized");
-    }
-};
-```
-
----
-
-## 10. Protected Route
-```javascript
-app.get("/dashboard", auth, (req, res) => {
-    res.send("Protected data");
-});
-```
-
----
-
-## 11. Authorization Role Example
-```javascript
-const adminOnly = (req, res, next) => {
-
-    if (req.user.role !== "admin") {
-        return res.status(403).send("Forbidden");
-    }
-
-    next();
-};
-```
-
----
-
-## 12. Security Best Practices
-- hash password
-- use JWT
-- use HTTPS
-- validate input
-- sanitize data
-- use middleware
-
----
-
-## 13. Learning Checklist
-- [ ] hash password ได้
-- [ ] compare password ได้
-- [ ] create JWT ได้
-- [ ] verify JWT ได้
-- [ ] สร้าง auth middleware ได้
-- [ ] protected route ได้
-- [ ] เข้าใจ authorization
-
----
-
-## 14. Next Module
-Module 13: Deployment and Production
+- Node.js security best practices: <https://nodejs.org/en/learn/getting-started/security-best-practices>
+- OWASP Authentication Cheat Sheet: <https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html>
+- OWASP Session Management Cheat Sheet: <https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>
