@@ -1,0 +1,20 @@
+{
+  "name": "nodejs-snake-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Professional Snake Game learning project using Node.js, Express 5 and Canvas",
+  "type": "module",
+  "engines": {
+    "node": ">=24.18.0 <25"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "check": "node --check src/server.js && node --check public/js/config.js && node --check public/js/input.js && node --check public/js/game-state.js && node --check public/js/renderer.js && node --check public/js/main.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "license": "MIT"
+}
