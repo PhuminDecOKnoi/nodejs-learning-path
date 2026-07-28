@@ -10,9 +10,9 @@
 
 ## ภาพรวม
 
-Repository นี้รวมและปรับปรุงบทเรียน Node.js จำนวน 18 Modules ให้สอดคล้องกับแนวปฏิบัติปี 2026 โดยใช้ **Node.js 24.18.0 LTS** เป็น production/teaching baseline และใช้ **Node.js 26.5.0 Current** เฉพาะการประเมินฟีเจอร์ใหม่และ compatibility testing
+Repository นี้รวมและปรับปรุงบทเรียน Node.js ให้สอดคล้องกับแนวปฏิบัติปี 2026 โดยใช้ **Node.js 24.18.0 LTS** เป็น production/teaching baseline และใช้ **Node.js 26.5.0 Current** เฉพาะการประเมินฟีเจอร์ใหม่และ compatibility testing
 
-หัวข้อหลักครอบคลุม ESM, Promise/`async`–`await`, built-in `fetch`, Express 5, database integration, authentication/security, built-in Node.js test runner, deployment, GitHub governance, CI/CD และ AI-powered Node.js development
+เนื้อหาครอบคลุมตั้งแต่โครงสร้างภาษา JavaScript สมัยใหม่, ESM, Promise/`async`–`await`, built-in `fetch`, Express 5, database integration, authentication/security, built-in Node.js test runner, deployment, GitHub governance, CI/CD, AI-powered Node.js development และบทเรียนเชิงลึกด้าน language/runtime evolution
 
 ## Version policy
 
@@ -44,6 +44,8 @@ Repository นี้รวมและปรับปรุงบทเรีย
 
 ## Learning path
 
+### Part 1 — Node.js Foundation
+
 1. [Introduction to Node.js](module-01-introduction-nodejs.md)
 2. [Environment Setup and First Script](module-02-environment-setup.md)
 3. [Modules, ESM, CommonJS and npm](module-03-modules-require-exports-npm.md)
@@ -51,6 +53,9 @@ Repository นี้รวมและปรับปรุงบทเรีย
 5. [Debugging and Error Reading](module-05-debugging-and-error-reading.md)
 6. [Asynchronous Programming](module-06-asynchronous-programming.md)
 7. [HTTP Requests and APIs](module-07-http-requests-and-apis.md)
+
+### Part 2 — Backend Development
+
 8. [Web Servers with Express 5](module-08-express-web-server.md)
 9. [HTML5, Static Assets and EJS](module-09-html-static-templating.md)
 10. [REST API Design and Routing](module-10-rest-api-design-routing.md)
@@ -59,14 +64,27 @@ Repository นี้รวมและปรับปรุงบทเรีย
 13. [Deployment and Production](module-13-deployment-production.md)
 14. [Testing and Production Debugging](module-14-testing-debugging-production.md)
 15. [Project Structure and Best Practices](module-15-project-structure-best-practices.md)
+
+### Part 3 — Engineering Workflow, DevOps and AI
+
 16. [Modern Git and GitHub Workflow](module-16-git-github-workflow.md)
 17. [Modern DevOps and CI/CD](module-17-modern-devops-ci-cd.md)
 18. [AI-powered Node.js Development](module-18-ai-powered-nodejs-development.md)
+
+### Part 4 — Modern JavaScript Language and Runtime Evolution
+
+19. [Modern ECMAScript Language Structure](module-19-modern-ecmascript-language-structure.md)
+20. [Advanced Functions and Closures](module-20-advanced-functions-closures.md)
+21. [Async Iterators and Generators](module-21-async-iterators-generators.md)
+
+> Planned next modules: Symbols/Reflect/Proxy, Import Attributes and Module Resolution, Web APIs in Node.js, V8/Event Loop internals, Worker Threads, Streams, TypeScript integration, enterprise architecture, observability, cloud-native deployment and advanced AI engineering.
 
 ## Major modernization rules
 
 - ESM-first for new examples
 - CommonJS retained only for legacy understanding
+- `const` by default and `let` only when reassignment is required
+- strict equality and explicit type conversion
 - `node:fs/promises` for asynchronous file operations
 - built-in `fetch()` with timeout/cancellation guidance
 - Express 5 async error flow and built-in body parsers
@@ -75,6 +93,8 @@ Repository นี้รวมและปรับปรุงบทเรีย
 - graceful shutdown, health/readiness and secure production defaults
 - GitHub rulesets, CODEOWNERS, Dependabot and least-privilege CI
 - OpenAI Responses API, Structured Outputs, tool validation, RAG and AI governance
+- streaming and async iteration for large-data workflows
+- separation of pure business logic from I/O side effects
 
 ## Repository structure
 
@@ -90,7 +110,7 @@ nodejs-learning-path/
 ├── .nvmrc
 ├── module-01-introduction-nodejs.md
 ├── ...
-├── module-18-ai-powered-nodejs-development.md
+├── module-21-async-iterators-generators.md
 └── examples/
     └── express-ejs/
 ```
