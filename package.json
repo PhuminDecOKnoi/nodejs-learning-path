@@ -1,8 +1,8 @@
 {
   "name": "nodejs-learning-path",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
-  "description": "Version-audited Node.js 24 LTS professional learning path covering ESM, Express 5, databases, security, testing, GitHub, CI/CD and AI-powered development.",
+  "description": "Version-audited Node.js 24 LTS professional learning path with Node.js 26 Current compatibility notes, covering ESM, Express 5, databases, security, testing, GitHub, CI/CD and AI-powered development.",
   "type": "module",
   "engines": {
     "node": ">=24.18.0 <25",
@@ -28,6 +28,7 @@
   "keywords": [
     "nodejs",
     "nodejs-24",
+    "nodejs-26-compatibility",
     "express-5",
     "ejs",
     "mysql2",
