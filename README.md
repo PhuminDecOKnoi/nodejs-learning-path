@@ -76,8 +76,17 @@ Repository นี้รวมและปรับปรุงบทเรีย
 19. [Modern ECMAScript Language Structure](module-19-modern-ecmascript-language-structure.md)
 20. [Advanced Functions and Closures](module-20-advanced-functions-closures.md)
 21. [Async Iterators and Generators](module-21-async-iterators-generators.md)
+22. [Symbols, Reflect and Proxy](module-22-symbols-reflect-proxy.md)
+23. [Import Attributes and Module Resolution](module-23-import-attributes-module-resolution.md)
+24. [Modern Web APIs in Node.js](module-24-modern-web-apis-nodejs.md)
+25. [URL, URLSearchParams and URLPattern](module-25-url-urlpattern-routing.md)
+26. [V8 Engine Deep Dive](module-26-v8-engine-deep-dive.md)
+27. [Event Loop and libuv Internals](module-27-event-loop-libuv-internals.md)
+28. [Worker Threads and Parallel Computing](module-28-worker-threads-parallel-computing.md)
+29. [Streams and Backpressure](module-29-streams-backpressure.md)
+30. [Memory Management and Garbage Collection](module-30-memory-management-garbage-collection.md)
 
-> Planned next modules: Symbols/Reflect/Proxy, Import Attributes and Module Resolution, Web APIs in Node.js, V8/Event Loop internals, Worker Threads, Streams, TypeScript integration, enterprise architecture, observability, cloud-native deployment and advanced AI engineering.
+> Planned next modules: TypeScript integration, Express 5 advanced patterns, Fastify, OpenAPI, GraphQL, OAuth/OIDC, enterprise architecture, observability, cloud-native deployment and advanced AI engineering.
 
 ## Major modernization rules
 
@@ -95,6 +104,8 @@ Repository นี้รวมและปรับปรุงบทเรีย
 - OpenAI Responses API, Structured Outputs, tool validation, RAG and AI governance
 - streaming and async iteration for large-data workflows
 - separation of pure business logic from I/O side effects
+- measurement-first performance optimization
+- explicit memory, queue and concurrency limits
 
 ## Repository structure
 
@@ -110,7 +121,7 @@ nodejs-learning-path/
 ├── .nvmrc
 ├── module-01-introduction-nodejs.md
 ├── ...
-├── module-21-async-iterators-generators.md
+├── module-30-memory-management-garbage-collection.md
 └── examples/
     └── express-ejs/
 ```
