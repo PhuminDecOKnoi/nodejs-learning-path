@@ -88,6 +88,27 @@ Repository นี้รวมและปรับปรุงบทเรีย
 
 > Planned next modules: TypeScript integration, Express 5 advanced patterns, Fastify, OpenAPI, GraphQL, OAuth/OIDC, enterprise architecture, observability, cloud-native deployment and advanced AI engineering.
 
+## Professional projects
+
+### Snake Game with Node.js
+
+โปรเจกต์เกมงูแบบแยกขั้นตอนสำหรับประยุกต์ความรู้จากบทเรียน โดยใช้ Node.js 24 LTS, Express 5, ESM, Canvas, fixed-timestep game loop และ built-in `node:test`
+
+- [เปิดคู่มือและ Source Code](projects/snake-game/README.md)
+- แยก Server, Input, Game State, Renderer และ Main Loop อย่างเป็นระบบ
+- มีคอมเมนต์ภาษาไทยโดยละเอียดในโค้ดสำคัญ
+- รองรับ Keyboard และ Touch Controls
+- มี automated tests สำหรับ game rules
+
+เริ่มใช้งาน:
+
+```bash
+cd projects/snake-game
+npm install
+npm test
+npm run dev
+```
+
 ## Major modernization rules
 
 - ESM-first for new examples
@@ -122,8 +143,15 @@ nodejs-learning-path/
 ├── module-01-introduction-nodejs.md
 ├── ...
 ├── module-30-memory-management-garbage-collection.md
-└── examples/
-    └── express-ejs/
+├── examples/
+│   └── express-ejs/
+└── projects/
+    └── snake-game/
+        ├── README.md
+        ├── package.json
+        ├── src/
+        ├── public/
+        └── test/
 ```
 
 ## Getting started
